@@ -15,7 +15,7 @@ namespace LostArkKoreanPatch
 
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            Application.Run(new LostArkKoreanPatchForm());
+            Application.Run(new LostArkKoreanPatch());
         }
 
         private static Assembly CurrentDomain_AssemblyResolve(object sender, ResolveEventArgs e)

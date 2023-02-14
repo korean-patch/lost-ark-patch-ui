@@ -4,7 +4,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{0B7EDEE4-411F-4DE3-8004-01AABA2C9C68}</ProjectGuid>
+    <ProjectGuid>{9859344E-C53C-4280-B0E1-484276F92646}</ProjectGuid>
     <OutputType>WinExe</OutputType>
     <RootNamespace>LostArkKoreanPatch</RootNamespace>
     <AssemblyName>LostArkKoreanPatch</AssemblyName>
@@ -27,7 +27,7 @@
     <PlatformTarget>AnyCPU</PlatformTarget>
     <DebugType>pdbonly</DebugType>
     <Optimize>true</Optimize>
-    <OutputPath>bin\Release\</OutputPath>
+    <OutputPath>..\bin\</OutputPath>
     <DefineConstants>TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -35,11 +35,9 @@
   <PropertyGroup>
     <ApplicationIcon>LOSTARK.ico</ApplicationIcon>
   </PropertyGroup>
-  <PropertyGroup>
-    <ApplicationManifest>app.manifest</ApplicationManifest>
-  </PropertyGroup>
   <ItemGroup>
-    <Reference Include="Newtonsoft.Json">
+    <Reference Include="Newtonsoft.Json, Version=13.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
       <HintPath>.\Newtonsoft.Json.dll</HintPath>
     </Reference>
     <Reference Include="System" />
@@ -55,16 +53,16 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="LostArkKoreanPatchForm.cs">
+    <Compile Include="LostArkKoreanPatch.cs">
       <SubType>Form</SubType>
     </Compile>
-    <Compile Include="LostArkKoreanPatchForm.Designer.cs">
-      <DependentUpon>LostArkKoreanPatchForm.cs</DependentUpon>
+    <Compile Include="LostArkKoreanPatch.Designer.cs">
+      <DependentUpon>LostArkKoreanPatch.cs</DependentUpon>
     </Compile>
     <Compile Include="Program.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <EmbeddedResource Include="LostArkKoreanPatchForm.resx">
-      <DependentUpon>LostArkKoreanPatchForm.cs</DependentUpon>
+    <EmbeddedResource Include="LostArkKoreanPatch.resx">
+      <DependentUpon>LostArkKoreanPatch.cs</DependentUpon>
     </EmbeddedResource>
     <EmbeddedResource Include="Properties\Resources.resx">
       <Generator>ResXFileCodeGenerator</Generator>
@@ -76,7 +74,6 @@
       <DependentUpon>Resources.resx</DependentUpon>
       <DesignTime>True</DesignTime>
     </Compile>
-    <None Include="app.manifest" />
     <None Include="Properties\Settings.settings">
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
