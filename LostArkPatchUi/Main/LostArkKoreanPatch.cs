@@ -284,30 +284,27 @@ namespace LostArkKoreanPatch
             }));
 
             // Check Windows registry uninstall list to find the lost ark installation.
-            string[] uninstallKeyNames = new string[]
-            {
-                "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall",
-                "SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall"
-            };
-
             string[] uninstallSteamKeyNames = new string[]
             {
-                $"{uninstallKeyNames[0]}\\Steam App 1599340",
-                $"{uninstallKeyNames[1]}\\Steam App 1599340"
+                $"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340",
+                $"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340"
             };
 
             // Check steam registry...
-            foreach (string uninstallSteamKeyName in uninstallSteamKeyNames)
+            using (RegistryKey localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32))
             {
-                using (RegistryKey uninstallKey = Registry.LocalMachine.OpenSubKey(uninstallSteamKeyName))
+                foreach (string uninstallSteamKeyName in uninstallSteamKeyNames)
                 {
-                    if (uninstallKey == null) continue;
+                    using (RegistryKey uninstallKey = localMachine.OpenSubKey(uninstallSteamKeyName))
+                    {
+                        if (uninstallKey == null) continue;
 
-                    object installLocation = uninstallKey.GetValue("InstallLocation");
-                    if (installLocation == null) continue;
+                        object installLocation = uninstallKey.GetValue("InstallLocation");
+                        if (installLocation == null) continue;
 
-                    targetDir = CheckTargetDir(Path.GetFullPath(installLocation.ToString()));
-                    break;
+                        targetDir = CheckTargetDir(Path.GetFullPath(installLocation.ToString()));
+                        break;
+                    }
                 }
             }
 
