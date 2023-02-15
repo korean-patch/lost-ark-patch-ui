@@ -394,9 +394,15 @@ namespace LostArkKoreanPatch
                 statusLabel.Text = "클라이언트 버전 체크 중...";
             }));
 
-            targetVersion = File.ReadAllText(Path.Combine(targetDir, "Binaries", "misc", distribFiles[0]));
+            targetVersion = File.ReadAllText(Path.Combine(targetDir, "Binaries", "misc", versionFile));
 
-            string cachedVersion = File.ReadAllText(Path.Combine(distribPath, versionFile));
+            string cachedVersion = string.Empty;
+
+            if (File.Exists(Path.Combine(distribPath, versionFile)))
+            {
+                cachedVersion = File.ReadAllText(Path.Combine(distribPath, versionFile));
+            }
+
             string serverVersion = string.Empty;
 
             // Download from server only if cached version is different...
