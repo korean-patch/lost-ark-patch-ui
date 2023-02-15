@@ -12,6 +12,7 @@ using System.Net.Http;
 using System.Net;
 using System.Text;
 using System.Windows.Forms;
+using System.Threading.Tasks;
 
 namespace LostArkKoreanPatch
 {
@@ -191,9 +192,11 @@ namespace LostArkKoreanPatch
             try
             {
                 // Get the JSON information about the latest release.
-                byte[] latestRelease = DownloadFile(githubReleaseApiUrl);
-                if (latestRelease == null) throw new Exception();
-                JObject releaseObject = JObject.Parse(Encoding.UTF8.GetString(latestRelease));
+                if (!DownloadFile(githubReleaseApiUrl, "latest.json", Path.Combine(Application.CommonAppDataPath, "latest.json")))
+                {
+                    throw new Exception();
+                }
+                JObject releaseObject = JObject.Parse(File.ReadAllText(Path.Combine(Application.CommonAppDataPath, "latest.json")));
 
                 // Get the asset information for the executables.
                 JObject[] assetsArray = ((JArray)releaseObject.GetValue("assets")).Select(asset => (JObject)asset).ToArray();
@@ -416,9 +419,14 @@ namespace LostArkKoreanPatch
 
                 try
                 {
-                    byte[] file = DownloadFile($"{distribUrl}/{versionFile}");
-                    File.WriteAllBytes(Path.Combine(distribPath, versionFile), file);
+                    if (!DownloadFile($"{distribUrl}/{versionFile}", versionFile, Path.Combine(distribPath, versionFile)))
+                    {
+                        throw new Exception();
+                    }
                     serverVersion = File.ReadAllText(Path.Combine(distribPath, versionFile));
+
+                    // After getting the version file from server, overwrite the cache version file again with the cached version
+                    // in the memory, since the update did not happen yet...
                     File.WriteAllText(Path.Combine(distribPath, versionFile), cachedVersion);
 
                     if (!serverVersion.Equals(targetVersion))
@@ -464,9 +472,19 @@ namespace LostArkKoreanPatch
                 foreach (string distribFile in distribFiles)
                 {
                     string url = $"{distribUrl}/{distribFile}";
-                    byte[] file = DownloadFile(url);
+                    
+                    try
+                    {
+                        // Create a directory for the file first, since it may be in a sub-directory.
+                        string filePath = Path.Combine(distribPath, distribFile);
+                        Directory.CreateDirectory(Path.GetDirectoryName(filePath));
 
-                    if (file == null)
+                        if (!DownloadFile(url, distribFile, filePath))
+                        {
+                            throw new Exception();
+                        }
+                    }
+                    catch
                     {
                         MessageBox.Show(
                             "다음 파일을 다운로드하는데 실패했어요." + Environment.NewLine + Environment.NewLine +
@@ -485,10 +503,6 @@ namespace LostArkKoreanPatch
 
                         return;
                     }
-
-                    string filePath = Path.Combine(distribPath, distribFile);
-                    Directory.CreateDirectory(Path.GetDirectoryName(filePath));
-                    File.WriteAllBytes(filePath, file);
                 }
 
                 // Update the cache version only when all downloads were successful.
@@ -504,25 +518,50 @@ namespace LostArkKoreanPatch
             }));
         }
 
-        // Downloads a file from given url and return it as a byte array.
-        private byte[] DownloadFile(string url)
+        // Downloads a file from given url and write to file stream.
+        private bool DownloadFile(string url, string fileName, string savePath)
         {
+            // Delete the destination file if it exists already.
+            if (File.Exists(savePath)) File.Delete(savePath);
+
             using (HttpClient client = new HttpClient())
             {
                 // Github request header.
                 client.DefaultRequestHeaders.Add("User-Agent", "request");
-                client.Timeout = TimeSpan.FromSeconds(30);
+                client.Timeout = TimeSpan.FromMinutes(5);
 
-                HttpResponseMessage responseMessage = client.GetAsync(url).GetAwaiter().GetResult();
-
-                // Do a quick status check and silently return null if something failed.
-                if (responseMessage == null || responseMessage.StatusCode != HttpStatusCode.OK)
+                // Download the header first to look at the content length.
+                using (HttpResponseMessage responseMessage = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
                 {
-                    return null;
-                }
+                    if (responseMessage.Content.Headers.ContentLength != null)
+                    {
+                        long contentLength = (long)responseMessage.Content.Headers.ContentLength;
 
-                return responseMessage.Content.ReadAsByteArrayAsync().GetAwaiter().GetResult();
+                        // Create a file stream for destination and grab stream from client.
+                        using (FileStream fs = new FileStream(savePath, FileMode.CreateNew))
+                        using (Stream inStream = responseMessage.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                        {
+                            // Create a progress reporter...
+                            Progress<int> p = new Progress<int>(new Action<int>((value) =>
+                            {
+                                initialChecker.ReportProgress(value);
+                            }));
+                            
+                            // Buffer size is 10 m.
+                            inStream.CopyToAsync(fs, (int)(contentLength / 10), contentLength, p).GetAwaiter().GetResult();
+
+                            // Empty the label after download is complete.
+                            initialChecker.ReportProgress(0);
+
+                            // Indicate download success.
+                            return true;
+                        }
+                    }
+                }
             }
+
+            // If anything happened and didn't reach download success, return download failed.
+            return false;
         }
 
         // Find the asset from assets using asset name.
@@ -540,11 +579,10 @@ namespace LostArkKoreanPatch
         private void DownloadAsset(JObject asset, string assetPath)
         {
             // Download the latest executable as byte array.
-            byte[] executable = DownloadFile(GetDownloadUrlFromAsset(asset));
-            if (executable == null) throw new Exception();
-
-            // Write the executable to designated path.
-            File.WriteAllBytes(assetPath, executable);
+            if (!DownloadFile(GetDownloadUrlFromAsset(asset), asset.GetValue("name").ToString(), assetPath))
+            {
+                throw new Exception();
+            }
         }
 
         // Read the version file and check if it matches with the asset's version.
@@ -601,6 +639,50 @@ namespace LostArkKoreanPatch
             }
 
             Close();
+        }
+
+        private void initialChecker_ProgressChanged(object sender, ProgressChangedEventArgs e)
+        {
+            progressBar.Value = e.ProgressPercentage;
+        }
+    }
+
+    // Extension for reporting download progress.
+    public static class StreamExtensions
+    {
+        public static async Task CopyToAsync(this Stream source, Stream destination, int bufferSize, long totalLength, IProgress<int> progress)
+        {
+            // Check parameters...
+            if (source == null) throw new ArgumentNullException(nameof(source));
+            if (!source.CanRead) throw new ArgumentException("Has to be readable.", nameof(source));
+            if (destination == null) throw new ArgumentNullException(nameof(destination));
+            if (!destination.CanWrite) throw new ArgumentException("Has to be writable.", nameof(destination));
+            if (bufferSize < 0) throw new ArgumentOutOfRangeException(nameof(bufferSize));
+
+            // Make a buffer with given buffer size.
+            byte[] buffer = new byte[bufferSize];
+            long totalBytesRead = 0;
+            int bytesRead;
+            int progressReport = 0;
+
+            // Fill buffer...
+            while ((bytesRead = await source.ReadAsync(buffer, 0, buffer.Length).ConfigureAwait(false)) != 0)
+            {
+                // Write buffer to destination.
+                await destination.WriteAsync(buffer, 0, bytesRead).ConfigureAwait(false);
+
+                // Up the total counter...
+                totalBytesRead += bytesRead;
+                int newProgressReport = (int)(totalBytesRead * 100 / totalLength);
+
+                // Only report if progress became higher.
+                if (newProgressReport > progressReport)
+                {
+                    // Report the progress.
+                    progressReport = newProgressReport;
+                    progress.Report(progressReport);
+                }
+            }
         }
     }
 }

@@ -33,6 +33,7 @@
             this.removeButton = new System.Windows.Forms.Button();
             this.statusLabel = new System.Windows.Forms.Label();
             this.initialChecker = new System.ComponentModel.BackgroundWorker();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
             // 
             // installButton
@@ -45,7 +46,7 @@
             this.installButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.installButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.installButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.installButton.Location = new System.Drawing.Point(0, 222);
+            this.installButton.Location = new System.Drawing.Point(0, 212);
             this.installButton.Margin = new System.Windows.Forms.Padding(10);
             this.installButton.Name = "installButton";
             this.installButton.Padding = new System.Windows.Forms.Padding(10);
@@ -66,7 +67,7 @@
             this.removeButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.removeButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.removeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.removeButton.Location = new System.Drawing.Point(0, 269);
+            this.removeButton.Location = new System.Drawing.Point(0, 259);
             this.removeButton.Margin = new System.Windows.Forms.Padding(10);
             this.removeButton.Name = "removeButton";
             this.removeButton.Padding = new System.Windows.Forms.Padding(10);
@@ -81,7 +82,7 @@
             // 
             this.statusLabel.AutoSize = true;
             this.statusLabel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.statusLabel.Location = new System.Drawing.Point(0, 316);
+            this.statusLabel.Location = new System.Drawing.Point(0, 306);
             this.statusLabel.Name = "statusLabel";
             this.statusLabel.Padding = new System.Windows.Forms.Padding(10, 20, 10, 10);
             this.statusLabel.Size = new System.Drawing.Size(86, 45);
@@ -90,7 +91,17 @@
             // 
             // initialChecker
             // 
+            this.initialChecker.WorkerReportsProgress = true;
             this.initialChecker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.initialChecker_DoWork);
+            this.initialChecker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.initialChecker_ProgressChanged);
+            // 
+            // progressBar
+            // 
+            this.progressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.progressBar.Location = new System.Drawing.Point(0, 351);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(384, 10);
+            this.progressBar.TabIndex = 0;
             // 
             // LostArkKoreanPatch
             // 
@@ -103,6 +114,7 @@
             this.Controls.Add(this.installButton);
             this.Controls.Add(this.removeButton);
             this.Controls.Add(this.statusLabel);
+            this.Controls.Add(this.progressBar);
             this.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(239)))), ((int)(((byte)(239)))));
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
@@ -125,5 +137,6 @@
         private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.Label statusLabel;
         private System.ComponentModel.BackgroundWorker initialChecker;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
