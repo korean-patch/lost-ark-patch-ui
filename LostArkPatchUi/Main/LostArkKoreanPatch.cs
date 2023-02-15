@@ -50,11 +50,11 @@ namespace LostArkKoreanPatch
         };
 
         private string githubReleaseApiUrl = "https://api.github.com/repos/korean-patch/lost-ark-patch-ui/releases/latest";
-        private string distribUrl = "https://korean-patch.github.io/lost-ark-korean-patch/distrib";
+        private string distribUrl = "https://lost-ark-korean-patch.s3.us-west-2.amazonaws.com";
 
+        private string versionFile = "LOSTARK.ver";
         private string[] distribFiles = new string[]
         {
-            "LOSTARK.ver",
             "font.lpk",
             "orig/font.lpk",
             "data2.lpk",
@@ -178,7 +178,6 @@ namespace LostArkKoreanPatch
             updaterPath = Path.Combine(Application.CommonAppDataPath, $"{updaterFileName}.exe");
 
             distribPath = Path.Combine(Application.CommonAppDataPath, distribDirName);
-            if (Directory.Exists(distribPath)) Directory.Delete(distribPath, true);
             Directory.CreateDirectory(distribPath);
 
             // Grab the worker processes from github release.
@@ -397,23 +396,49 @@ namespace LostArkKoreanPatch
 
             targetVersion = File.ReadAllText(Path.Combine(targetDir, "Binaries", "misc", distribFiles[0]));
 
-            // Retrieve the korean patch based on the client version.
-            Invoke(new Action(() =>
-            {
-                statusLabel.Text = $"서버에서 한글 패치 가져오는 중... 버전 {targetVersion}";
-            }));
+            string cachedVersion = File.ReadAllText(Path.Combine(distribPath, versionFile));
+            string serverVersion = string.Empty;
 
-            // Download patch files for the detected client version.
-            foreach (string distribFile in distribFiles)
+            // Download from server only if cached version is different...
+            if (!cachedVersion.Equals(targetVersion))
             {
-                string url = $"{distribUrl}/{targetVersion}/{distribFile}";
-                byte[] file = DownloadFile(url);
+                // Retrieve the korean patch based on the client version.
+                Invoke(new Action(() =>
+                {
+                    statusLabel.Text = $"서버에서 한글 패치 가져오는 중... 버전 {targetVersion}";
+                }));
 
-                if (file == null)
+                try
+                {
+                    byte[] file = DownloadFile($"{distribUrl}/{versionFile}");
+                    File.WriteAllBytes(Path.Combine(distribPath, versionFile), file);
+                    serverVersion = File.ReadAllText(Path.Combine(distribPath, versionFile));
+                    File.WriteAllText(Path.Combine(distribPath, versionFile), cachedVersion);
+
+                    if (!serverVersion.Equals(targetVersion))
+                    {
+                        MessageBox.Show(
+                            "현재 설치된 게임 클라이언트의 버전이 서버의 버전과 달라요!" + Environment.NewLine + Environment.NewLine +
+                            $"클라이언트 버전: {targetVersion}, 서버 버전: {serverVersion}" + Environment.NewLine + Environment.NewLine +
+                            "문제가 지속되면 디스코드를 통해 문의해주세요.",
+                            Text,
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error,
+                            MessageBoxDefaultButton.Button1,
+                            MessageBoxOptions.DefaultDesktopOnly);
+
+                        Invoke(new Action(() =>
+                        {
+                            Close();
+                        }));
+
+                        return;
+                    }
+                }
+                catch
                 {
                     MessageBox.Show(
-                        "다음 파일을 다운로드하는데 실패했어요." + Environment.NewLine + Environment.NewLine +
-                        url + Environment.NewLine + Environment.NewLine +
+                        "한글 패치 서버 버전을 확인하는데 실패했어요." + Environment.NewLine + Environment.NewLine +
                         "문제가 지속되면 디스코드를 통해 문의해주세요.",
                         Text,
                         MessageBoxButtons.OK,
@@ -428,12 +453,40 @@ namespace LostArkKoreanPatch
 
                     return;
                 }
-                else
+
+                // Download patch files for the detected client version.
+                foreach (string distribFile in distribFiles)
                 {
+                    string url = $"{distribUrl}/{distribFile}";
+                    byte[] file = DownloadFile(url);
+
+                    if (file == null)
+                    {
+                        MessageBox.Show(
+                            "다음 파일을 다운로드하는데 실패했어요." + Environment.NewLine + Environment.NewLine +
+                            url + Environment.NewLine + Environment.NewLine +
+                            "문제가 지속되면 디스코드를 통해 문의해주세요.",
+                            Text,
+                            MessageBoxButtons.OK,
+                            MessageBoxIcon.Error,
+                            MessageBoxDefaultButton.Button1,
+                            MessageBoxOptions.DefaultDesktopOnly);
+
+                        Invoke(new Action(() =>
+                        {
+                            Close();
+                        }));
+
+                        return;
+                    }
+
                     string filePath = Path.Combine(distribPath, distribFile);
                     Directory.CreateDirectory(Path.GetDirectoryName(filePath));
                     File.WriteAllBytes(filePath, file);
                 }
+
+                // Update the cache version only when all downloads were successful.
+                File.WriteAllText(Path.Combine(distribPath, versionFile), serverVersion);
             }
 
             // All done!
