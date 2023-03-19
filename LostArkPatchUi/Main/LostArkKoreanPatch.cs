@@ -13,6 +13,7 @@ using System.Net;
 using System.Text;
 using System.Windows.Forms;
 using System.Threading.Tasks;
+using System.Threading;
 
 namespace LostArkKoreanPatch
 {
@@ -285,28 +286,46 @@ namespace LostArkKoreanPatch
                 statusLabel.Text = "로스트 아크 클라이언트를 찾는 중...";
             }));
 
-            // Check Windows registry uninstall list to find the lost ark installation.
-            string[] uninstallSteamKeyNames = new string[]
+            Stopwatch stopwatch = new Stopwatch();
+            
+            Thread t = new Thread(new ThreadStart(() =>
             {
-                $"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340",
-                $"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340"
-            };
-
-            // Check steam registry...
-            using (RegistryKey localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32))
-            {
-                foreach (string uninstallSteamKeyName in uninstallSteamKeyNames)
+                // Check Windows registry uninstall list to find the lost ark installation.
+                string[] uninstallSteamKeyNames = new string[]
                 {
-                    using (RegistryKey uninstallKey = localMachine.OpenSubKey(uninstallSteamKeyName))
+                    $"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340",
+                    $"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340"
+                };
+
+                // Check steam registry...
+                using (RegistryKey localMachine = RegistryKey.OpenBaseKey(RegistryHive.LocalMachine, Environment.Is64BitOperatingSystem ? RegistryView.Registry64 : RegistryView.Registry32))
+                {
+                    foreach (string uninstallSteamKeyName in uninstallSteamKeyNames)
                     {
-                        if (uninstallKey == null) continue;
+                        using (RegistryKey uninstallKey = localMachine.OpenSubKey(uninstallSteamKeyName))
+                        {
+                            if (uninstallKey == null) continue;
 
-                        object installLocation = uninstallKey.GetValue("InstallLocation");
-                        if (installLocation == null) continue;
+                            object installLocation = uninstallKey.GetValue("InstallLocation");
+                            if (installLocation == null) continue;
 
-                        targetDir = CheckTargetDir(Path.GetFullPath(installLocation.ToString()));
-                        break;
+                            targetDir = CheckTargetDir(Path.GetFullPath(installLocation.ToString()));
+                            break;
+                        }
                     }
+                }
+            }));
+
+            stopwatch.Start();
+            t.Start();
+
+            // Check if path finding has finished every 1s.
+            while (!t.Join(1000))
+            {
+                // If total running time is more than 1 minute, just abort it.
+                if (stopwatch.ElapsedMilliseconds > 60000)
+                {
+                    t.Abort();
                 }
             }
 
