@@ -286,15 +286,13 @@ namespace LostArkKoreanPatch
                 statusLabel.Text = "로스트 아크 클라이언트를 찾는 중...";
             }));
 
-            Stopwatch stopwatch = new Stopwatch();
-            
-            Thread t = new Thread(new ThreadStart(() =>
+            try
             {
                 // Check Windows registry uninstall list to find the lost ark installation.
                 string[] uninstallSteamKeyNames = new string[]
                 {
-                    $"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340",
-                    $"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340"
+                $"SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340",
+                $"SOFTWARE\\WOW6432Node\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Steam App 1599340"
                 };
 
                 // Check steam registry...
@@ -314,19 +312,10 @@ namespace LostArkKoreanPatch
                         }
                     }
                 }
-            }));
-
-            stopwatch.Start();
-            t.Start();
-
-            // Check if path finding has finished every 1s.
-            while (!t.Join(1000))
+            }
+            catch
             {
-                // If total running time is more than 1 minute, just abort it.
-                if (stopwatch.ElapsedMilliseconds > 60000)
-                {
-                    t.Abort();
-                }
+                targetDir = string.Empty;
             }
 
             // If the installation location is found, ask user to confirm.
