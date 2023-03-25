@@ -2,9 +2,8 @@
 using System.IO;
 using System.Threading;
 
-namespace LostArkKoreanPatch.Patcher
+namespace LostArkKoreanPatch
 {
-    // Worker process for LostArkKoreanPatch that do stuff that may require administrator access.
     internal class Program
     {
         private static string targetDir = string.Empty;
@@ -15,6 +14,7 @@ namespace LostArkKoreanPatch.Patcher
             "font.lpk",
             "data2.lpk"
         };
+
         private static string[] restoreFiles = new string[]
         {
             "font.lpk",

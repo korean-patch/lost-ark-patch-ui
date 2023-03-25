@@ -7,7 +7,7 @@ using System.Runtime.InteropServices;
 // 이러한 특성 값을 변경하세요.
 [assembly: AssemblyTitle("LostArkKoreanPatch")]
 [assembly: AssemblyDescription("")]
-[assembly: AssemblyConfiguration("LostArkKoreanPatch")]
+[assembly: AssemblyConfiguration("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyProduct("")]
 [assembly: AssemblyCopyright("")]
@@ -20,7 +20,7 @@ using System.Runtime.InteropServices;
 [assembly: ComVisible(false)]
 
 // 이 프로젝트가 COM에 노출되는 경우 다음 GUID는 typelib의 ID를 나타냅니다.
-[assembly: Guid("a760f10e-160c-4d8c-a657-7a674407b3ad")]
+[assembly: Guid("a46bbc36-039c-47aa-96e8-32d4cfe8f12d")]
 
 // 어셈블리의 버전 정보는 다음 네 가지 값으로 구성됩니다.
 //

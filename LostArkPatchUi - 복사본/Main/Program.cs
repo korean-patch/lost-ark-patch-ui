@@ -1,7 +1,9 @@
 ﻿using System;
+using System.IO;
+using System.Reflection;
 using System.Windows.Forms;
 
-namespace LostArkKoreanPatch.Main
+namespace LostArkKoreanPatch
 {
     internal static class Program
     {

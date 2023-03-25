@@ -1,4 +1,4 @@
-﻿namespace LostArkKoreanPatch.Main
+﻿namespace LostArkKoreanPatch
 {
     partial class LostArkKoreanPatch
     {
@@ -29,55 +29,12 @@
         private void InitializeComponent()
         {
             System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(LostArkKoreanPatch));
-            this.progressBar = new System.Windows.Forms.ProgressBar();
-            this.statusLabel = new System.Windows.Forms.Label();
-            this.removeButton = new System.Windows.Forms.Button();
             this.installButton = new System.Windows.Forms.Button();
+            this.removeButton = new System.Windows.Forms.Button();
+            this.statusLabel = new System.Windows.Forms.Label();
             this.initialChecker = new System.ComponentModel.BackgroundWorker();
-            this.installWorker = new System.ComponentModel.BackgroundWorker();
-            this.removeWorker = new System.ComponentModel.BackgroundWorker();
-            this.downloadLabel = new System.Windows.Forms.Label();
+            this.progressBar = new System.Windows.Forms.ProgressBar();
             this.SuspendLayout();
-            // 
-            // progressBar
-            // 
-            this.progressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.progressBar.Location = new System.Drawing.Point(0, 351);
-            this.progressBar.Name = "progressBar";
-            this.progressBar.Size = new System.Drawing.Size(384, 10);
-            this.progressBar.TabIndex = 0;
-            // 
-            // statusLabel
-            // 
-            this.statusLabel.AutoSize = true;
-            this.statusLabel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.statusLabel.Location = new System.Drawing.Point(0, 281);
-            this.statusLabel.Name = "statusLabel";
-            this.statusLabel.Padding = new System.Windows.Forms.Padding(10, 20, 0, 10);
-            this.statusLabel.Size = new System.Drawing.Size(76, 45);
-            this.statusLabel.TabIndex = 0;
-            this.statusLabel.Text = "statusLabel";
-            // 
-            // removeButton
-            // 
-            this.removeButton.AutoSize = true;
-            this.removeButton.BackColor = System.Drawing.Color.Transparent;
-            this.removeButton.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.removeButton.Enabled = false;
-            this.removeButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
-            this.removeButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
-            this.removeButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
-            this.removeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.removeButton.Location = new System.Drawing.Point(0, 234);
-            this.removeButton.Margin = new System.Windows.Forms.Padding(10);
-            this.removeButton.Name = "removeButton";
-            this.removeButton.Padding = new System.Windows.Forms.Padding(10);
-            this.removeButton.Size = new System.Drawing.Size(384, 47);
-            this.removeButton.TabIndex = 0;
-            this.removeButton.TabStop = false;
-            this.removeButton.Text = "한글 패치 삭제";
-            this.removeButton.UseVisualStyleBackColor = false;
-            this.removeButton.Click += new System.EventHandler(this.removeButton_Click);
             // 
             // installButton
             // 
@@ -89,7 +46,7 @@
             this.installButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
             this.installButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
             this.installButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.installButton.Location = new System.Drawing.Point(0, 187);
+            this.installButton.Location = new System.Drawing.Point(0, 212);
             this.installButton.Margin = new System.Windows.Forms.Padding(10);
             this.installButton.Name = "installButton";
             this.installButton.Padding = new System.Windows.Forms.Padding(10);
@@ -100,34 +57,51 @@
             this.installButton.UseVisualStyleBackColor = false;
             this.installButton.Click += new System.EventHandler(this.installButton_Click);
             // 
+            // removeButton
+            // 
+            this.removeButton.AutoSize = true;
+            this.removeButton.BackColor = System.Drawing.Color.Transparent;
+            this.removeButton.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.removeButton.Enabled = false;
+            this.removeButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            this.removeButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.removeButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.removeButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.removeButton.Location = new System.Drawing.Point(0, 259);
+            this.removeButton.Margin = new System.Windows.Forms.Padding(10);
+            this.removeButton.Name = "removeButton";
+            this.removeButton.Padding = new System.Windows.Forms.Padding(10);
+            this.removeButton.Size = new System.Drawing.Size(384, 47);
+            this.removeButton.TabIndex = 0;
+            this.removeButton.TabStop = false;
+            this.removeButton.Text = "한글 패치 삭제";
+            this.removeButton.UseVisualStyleBackColor = false;
+            this.removeButton.Click += new System.EventHandler(this.removeButton_Click);
+            // 
+            // statusLabel
+            // 
+            this.statusLabel.AutoSize = true;
+            this.statusLabel.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.statusLabel.Location = new System.Drawing.Point(0, 306);
+            this.statusLabel.Name = "statusLabel";
+            this.statusLabel.Padding = new System.Windows.Forms.Padding(10, 20, 10, 10);
+            this.statusLabel.Size = new System.Drawing.Size(86, 45);
+            this.statusLabel.TabIndex = 0;
+            this.statusLabel.Text = "statusLabel";
+            // 
             // initialChecker
             // 
             this.initialChecker.WorkerReportsProgress = true;
             this.initialChecker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.initialChecker_DoWork);
             this.initialChecker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.progressChanged);
             // 
-            // installWorker
+            // progressBar
             // 
-            this.installWorker.WorkerReportsProgress = true;
-            this.installWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.installWorker_DoWork);
-            this.installWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.progressChanged);
-            // 
-            // removeWorker
-            // 
-            this.removeWorker.WorkerReportsProgress = true;
-            this.removeWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.removeWorker_DoWork);
-            this.removeWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.progressChanged);
-            // 
-            // downloadLabel
-            // 
-            this.downloadLabel.AutoSize = true;
-            this.downloadLabel.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.downloadLabel.Location = new System.Drawing.Point(0, 326);
-            this.downloadLabel.Name = "downloadLabel";
-            this.downloadLabel.Padding = new System.Windows.Forms.Padding(10, 0, 0, 10);
-            this.downloadLabel.Size = new System.Drawing.Size(98, 25);
-            this.downloadLabel.TabIndex = 0;
-            this.downloadLabel.Text = "downloadLabel";
+            this.progressBar.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.progressBar.Location = new System.Drawing.Point(0, 351);
+            this.progressBar.Name = "progressBar";
+            this.progressBar.Size = new System.Drawing.Size(384, 10);
+            this.progressBar.TabIndex = 0;
             // 
             // LostArkKoreanPatch
             // 
@@ -140,7 +114,6 @@
             this.Controls.Add(this.installButton);
             this.Controls.Add(this.removeButton);
             this.Controls.Add(this.statusLabel);
-            this.Controls.Add(this.downloadLabel);
             this.Controls.Add(this.progressBar);
             this.Font = new System.Drawing.Font("맑은 고딕", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
             this.ForeColor = System.Drawing.Color.FromArgb(((int)(((byte)(239)))), ((int)(((byte)(239)))), ((int)(((byte)(239)))));
@@ -160,13 +133,10 @@
 
         #endregion
 
-        private System.Windows.Forms.ProgressBar progressBar;
-        private System.Windows.Forms.Label statusLabel;
-        private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.Button installButton;
+        private System.Windows.Forms.Button removeButton;
+        private System.Windows.Forms.Label statusLabel;
         private System.ComponentModel.BackgroundWorker initialChecker;
-        private System.ComponentModel.BackgroundWorker installWorker;
-        private System.ComponentModel.BackgroundWorker removeWorker;
-        private System.Windows.Forms.Label downloadLabel;
+        private System.Windows.Forms.ProgressBar progressBar;
     }
 }
