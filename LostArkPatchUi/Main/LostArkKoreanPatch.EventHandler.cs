@@ -109,7 +109,6 @@ namespace LostArkKoreanPatch.Main
                             MessageBoxIcon.Information,
                             "업데이트가 필요해 프로그램을 종료할 거예요.",
                             "업데이트가 완료되면 자동으로 재실행할게요.");
-
                         Process.Start(new ProcessStartInfo(updaterPath, $"\"{mainPath}\" \"{mainTempPath}\""));
                         CloseForm();
                         return;
@@ -206,22 +205,22 @@ namespace LostArkKoreanPatch.Main
 
                             if (string.IsNullOrEmpty(targetDir))
                             {
-                                MessageBox.Show(
-                                    "선택하신 경로가 올바르지 않아요.",
-                                    Text,
+                                ShowMessageBox(
                                     MessageBoxButtons.OK,
-                                    MessageBoxIcon.Error);
-                                Close();
+                                    MessageBoxIcon.Error,
+                                    "선택하신 경로가 올바르지 않아요.");
+                                CloseForm();
+                                return;
                             }
                         }
                         else
                         {
-                            MessageBox.Show(
-                                "선택하신 경로가 올바르지 않아요.",
-                                Text,
+                            ShowMessageBox(
                                 MessageBoxButtons.OK,
-                                MessageBoxIcon.Error);
-                            Close();
+                                MessageBoxIcon.Error,
+                                "선택하신 경로가 올바르지 않아요.");
+                            CloseForm();
+                            return;
                         }
                     }));
                 }
@@ -312,7 +311,7 @@ namespace LostArkKoreanPatch.Main
             try
             {
                 // Check cached patch files and download from server only if SHA1 checksum is different.
-                UpdateStatusLabel($"한글 패치 업데이트 확인중... {targetVersion}");
+                UpdateStatusLabel($"한글 패치 업데이트 확인 중... {targetVersion}");
 
                 foreach (KeyValuePair<string, string> distributedFileName in distributedFileNames)
                 {
@@ -321,7 +320,7 @@ namespace LostArkKoreanPatch.Main
                         $"{Path.Combine(distribDir, distributedFileName.Key)}.{distributedFileName.Value}", installWorker);
                 }
 
-                UpdateStatusLabel($"한글 패치 설치중... {targetVersion}");
+                UpdateStatusLabel($"한글 패치 설치 중... {targetVersion}");
 
                 Invoke(new Action(() =>
                 {
@@ -362,7 +361,7 @@ namespace LostArkKoreanPatch.Main
             installButton.Enabled = false;
             removeButton.Enabled = false;
 
-            // Start the background worker to install the korean patch...
+            // Start the background worker to remove the korean patch...
             removeWorker.RunWorkerAsync();
         }
 
@@ -374,23 +373,23 @@ namespace LostArkKoreanPatch.Main
                 Directory.CreateDirectory(Path.Combine(distribDir, "orig"));
 
                 // Check cached patch files and download from server only if SHA1 checksum is different.
-                UpdateStatusLabel($"한글 패치 업데이트 확인중... {targetVersion}");
+                UpdateStatusLabel($"한글 패치 업데이트 확인 중... {targetVersion}");
 
                 foreach (KeyValuePair<string, string> distributedFileName in distributedFileNames)
                 {
                     CheckAndDownload(
                         $"{serverUrl}/distrib/orig", distributedFileName.Key, distributedFileName.Value,
-                        $"{Path.Combine(distribDir, "orig", distributedFileName.Key)}.{distributedFileName.Value}", installWorker);
+                        $"{Path.Combine(distribDir, "orig", distributedFileName.Key)}.{distributedFileName.Value}", removeWorker);
                 }
 
-                UpdateStatusLabel($"한글 패치 삭제중... {targetVersion}");
+                UpdateStatusLabel($"한글 패치 삭제 중... {targetVersion}");
 
                 Invoke(new Action(() =>
                 {
                     progressBar.Value = 0;
                 }));
 
-                // Run the child worker process with administrator access to copy the patch files.
+                // Run the child worker process with administrator access to replace the patch files with original unpatched files.
                 Process p = Process.Start(new ProcessStartInfo(patcherPath, $"1 \"{targetDir}\" \"{distribDir}\"")
                 {
                     UseShellExecute = true,

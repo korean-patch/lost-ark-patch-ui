@@ -117,7 +117,7 @@ namespace LostArkKoreanPatch.Main
                     g.DrawImage(origImage, rect, 0, 0, origImage.Width, origImage.Height, GraphicsUnit.Pixel, wrapMode);
                 }
 
-                // Prepare a linear gradient brush that is transparent on top, and form back color at the bottom.
+                // Prepare a linear gradient brush that is transparent on top and form back color at the bottom.
                 LinearGradientBrush brush = new LinearGradientBrush(rect, Color.Transparent, BackColor, 90f);
 
                 // Draw on top of the original image.
@@ -249,6 +249,55 @@ namespace LostArkKoreanPatch.Main
             throw new Exception($"다음 파일을 다운로드하는 중 오류가 발생하였습니다. {url}");
         }
 
+        // Downloads a file from given url while reporting progress on given background worker, then save it to disk.
+        private void DownloadAndSaveFile(string url, string filePath, string fileName, BackgroundWorker worker)
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                // Default user agent and timeout values.
+                client.DefaultRequestHeaders.Add("User-Agent", "request");
+                client.Timeout = TimeSpan.FromMinutes(5);
+
+                // Indicate what file we're downloading...
+                UpdateDownloadLabel($"다운로드중: {fileName}");
+
+                // Download the header first to look at the content length.
+                using (HttpResponseMessage responseMessage = client.GetAsync(url, HttpCompletionOption.ResponseHeadersRead).GetAwaiter().GetResult())
+                {
+                    if (responseMessage.Content.Headers.ContentLength != null)
+                    {
+                        long contentLength = (long)responseMessage.Content.Headers.ContentLength;
+
+                        // Create a memory stream and feed it with the client stream.
+                        using (FileStream fs = new FileStream(filePath, FileMode.Create))
+                        using (Stream inStream = responseMessage.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
+                        {
+                            // Create a progress reporter that reports the progress to the designated background worker.
+                            Progress<int> p = new Progress<int>(new Action<int>((value) =>
+                            {
+                                worker.ReportProgress(value);
+                            }));
+
+                            // Buffer size is 1/10 of the total content.
+                            // Grab data from http client stream and copy to memory stream.
+                            inStream.CopyToAsync(fs, (int)(contentLength / 10), contentLength, p).GetAwaiter().GetResult();
+
+                            // Empty the progress bar after download is complete.
+                            worker.ReportProgress(0);
+
+                            // Reset the label.
+                            UpdateDownloadLabel("");
+
+                            return;
+                        }
+                    }
+                }
+            }
+
+            // If anything happened and didn't reach successful download, throw an exception.
+            throw new Exception($"다음 파일을 다운로드하는 중 오류가 발생하였습니다. {url}");
+        }
+
         // Check SHA1 checksum between given file and server record and return true if they match.
         private bool CheckSHA1(string filePath, string url, string fileName, BackgroundWorker worker)
         {
@@ -272,7 +321,7 @@ namespace LostArkKoreanPatch.Main
             if (!downloadRequired) return;
 
             // Download the file and save it.
-            File.WriteAllBytes(targetFilePath, DownloadFile($"{baseUrl}/{fileName}.{fileExtension}", $"{fileName}.{fileExtension}", worker));
+            DownloadAndSaveFile($"{baseUrl}/{fileName}.{fileExtension}", targetFilePath, $"{fileName}.{fileExtension}", worker);
         }
     }
 
