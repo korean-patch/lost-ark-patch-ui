@@ -66,7 +66,7 @@ namespace LostArkKoreanPatch.Patcher
         {
             foreach (string restoreFile in restoreFiles)
             {
-                File.Copy(Path.Combine(distribDir, "orig", restoreFile), Path.Combine(targetDir, "EFGame", restoreFile), true);
+                File.Copy(Path.Combine(distribDir, restoreFile), Path.Combine(targetDir, "EFGame", restoreFile), true);
             }
         }
     }

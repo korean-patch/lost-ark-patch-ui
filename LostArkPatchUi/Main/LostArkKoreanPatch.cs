@@ -5,6 +5,7 @@ using System.Drawing;
 using System.Drawing.Drawing2D;
 using System.Drawing.Imaging;
 using System.IO;
+using System.IO.Compression;
 using System.Linq;
 using System.Net.Http;
 using System.Security.Cryptography;
@@ -19,21 +20,30 @@ namespace LostArkKoreanPatch.Main
         // S3 server URL that hosts distributed patch files.
         private const string serverUrl = "https://lost-ark-korean-patch.s3.us-west-2.amazonaws.com";
 
+        // Directory and path for the distributed programs.
+        private string programPath = string.Empty;
+        private string programDir = string.Empty;
+
         // Path for the main patch program.
         private string mainPath = string.Empty;
         private const string mainFileName = "LostArkKoreanPatch";
         private string mainTempPath = string.Empty;
 
         // Path for the patcher program.
-        private string patcherPath = string.Empty;
         private const string patcherFileName = "LostArkKoreanPatcher";
+        private string patcherPath = string.Empty;
 
         // Path for the updater program.
-        private string updaterPath = string.Empty;
         private const string updaterFileName = "LostArkKoreanUpdater";
+        private string updaterPath = string.Empty;
 
         // Directory for the distributed patch files.
+        private string distribPath = string.Empty;
         private string distribDir = string.Empty;
+
+        // Directory for the original patch files.
+        private string origPath = string.Empty;
+        private string origDir = string.Empty;
 
         // Process names to check for before doing the patch.
         private string[] gameProcessNames = new string[]
@@ -57,13 +67,6 @@ namespace LostArkKoreanPatch.Main
 
         // Name of the version file that denotes target game client version for the patch.
         private const string versionFileName = "LOSTARK.ver";
-
-        // Map of the list of distributed patch file names, paired with their extensions.
-        private Dictionary<string, string> distributedFileNames = new Dictionary<string, string>()
-        {
-            { "font", "lpk" },
-            { "data2", "lpk" }
-        };
 
         // Target client directory.
         private string targetDir = string.Empty;
@@ -305,7 +308,7 @@ namespace LostArkKoreanPatch.Main
         }
 
         // Check SHA1 with existing file and only download if checksum is different.
-        private void CheckAndDownload(string baseUrl, string fileName, string fileExtension, string targetFilePath, BackgroundWorker worker)
+        private bool CheckIfDownloadRequired(string url, string fileName, string targetFilePath, BackgroundWorker worker)
         {
             // If target file does not exist, download is always required.
             bool downloadRequired = !File.Exists(targetFilePath);
@@ -314,14 +317,29 @@ namespace LostArkKoreanPatch.Main
             if (!downloadRequired)
             {
                 // Compare SHA1 checksum.
-                downloadRequired = !CheckSHA1(targetFilePath, $"{baseUrl}/{fileName}.sha1", $"{fileName}.sha1", worker);
+                downloadRequired = !CheckSHA1(targetFilePath, url, fileName, worker);
             }
 
-            // Do nothing if download is not required.
-            if (!downloadRequired) return;
+            return downloadRequired;
+        }
 
-            // Download the file and save it.
-            DownloadAndSaveFile($"{baseUrl}/{fileName}.{fileExtension}", targetFilePath, $"{fileName}.{fileExtension}", worker);
+        // Extract given file to a folder.
+        private void ExtractToFolder(string filePath, string destinationName)
+        {
+            ZipFile.ExtractToDirectory(filePath, destinationName);
+        }
+
+        // Uncompress individual file.
+        private void UncompressFile(string filePath, string outPath)
+        {
+            using (FileStream inStream = new FileStream(filePath, FileMode.Open))
+            using (FileStream outStream = new FileStream(outPath, FileMode.Create))
+            using (GZipStream gzStream = new GZipStream(inStream, CompressionMode.Decompress))
+            {
+                gzStream.CopyTo(outStream);
+            }
+
+            File.Delete(filePath);
         }
     }
 

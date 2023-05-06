@@ -60,24 +60,53 @@ namespace LostArkKoreanPatch.Main
 
                 // Populate necessary paths.
                 mainPath = Application.ExecutablePath;
-                mainTempPath = Path.Combine(Application.CommonAppDataPath, $"{mainFileName}.exe");
-                patcherPath = Path.Combine(Application.CommonAppDataPath, $"{patcherFileName}.exe");
-                updaterPath = Path.Combine(Application.CommonAppDataPath, $"{updaterFileName}.exe");
-                distribDir = Path.Combine(Application.CommonAppDataPath, "distrib");
+                mainTempPath = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, $"{mainFileName}.exe"));
+                patcherPath = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, $"{patcherFileName}.exe"));
+                updaterPath = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, $"{updaterFileName}.exe"));
 
-                // Create the distrib directory if it doesn't exist.
-                Directory.CreateDirectory(distribDir);
+                programPath = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, "program"));
+                programDir = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, "programOutput"));
+
+                distribPath = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, "distrib"));
+                distribDir = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, "distribOutput"));
+
+                origPath = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, "orig"));
+                origDir = Path.GetFullPath(Path.Combine(Application.CommonAppDataPath, "origOutput"));
+
+                // Clean up some stuff.
+                if (File.Exists(mainTempPath)) File.Delete(mainTempPath);
+                if (Directory.Exists(programPath)) Directory.Delete(programPath, true);
+                if (Directory.Exists(distribPath)) Directory.Delete(distribPath, true);
+                if (Directory.Exists(origPath)) Directory.Delete(origPath, true);
 
                 // Grab the necessary worker processes from the server.
                 UpdateStatusLabel("필요한 프로그램 가져오는 중...");
 
                 try
                 {
-                    // Check and download patcher.
-                    CheckAndDownload($"{serverUrl}/program", patcherFileName, "exe", patcherPath, initialChecker);
+                    // Check and download program.
+                    string programUrl = Encoding.ASCII.GetString(DownloadFile($"{serverUrl}/program", "program", initialChecker));
+                    bool downloadRequired = CheckIfDownloadRequired($"{programUrl}.sha1", "program.sha1", programPath, initialChecker);
 
-                    // Check and download updater.
-                    CheckAndDownload($"{serverUrl}/program", updaterFileName, "exe", updaterPath, initialChecker);
+                    if (downloadRequired)
+                    {
+                        DownloadAndSaveFile(programUrl, programPath, "program", initialChecker);
+
+                        if (Directory.Exists(programDir)) Directory.Delete(programDir, true);
+                        Directory.CreateDirectory(programDir);
+                        ExtractToFolder(programPath, programDir);
+
+                        UncompressFile(Path.Combine(programDir, $"{mainFileName}exe"), Path.Combine(programDir, $"{mainFileName}.exe"));
+                        UncompressFile(Path.Combine(programDir, $"{patcherFileName}exe"), Path.Combine(programDir, $"{patcherFileName}.exe"));
+                        UncompressFile(Path.Combine(programDir, $"{updaterFileName}exe"), Path.Combine(programDir, $"{updaterFileName}.exe"));
+
+                        if (File.Exists(mainTempPath)) File.Delete(mainTempPath);
+                        File.Move(Path.Combine(programDir, $"{mainFileName}.exe"), mainTempPath);
+                        if (File.Exists(patcherPath)) File.Delete(patcherPath);
+                        File.Move(Path.Combine(programDir, $"{patcherFileName}.exe"), patcherPath);
+                        if (File.Exists(updaterPath)) File.Delete(updaterPath);
+                        File.Move(Path.Combine(programDir, $"{updaterFileName}.exe"), updaterPath);
+                    }
                 }
                 catch (Exception exception)
                 {
@@ -97,12 +126,9 @@ namespace LostArkKoreanPatch.Main
 
                 try
                 {
-                    // If SHA1 checksum doesn't match, main executable needs update.
-                    if (!CheckSHA1(mainPath, $"{serverUrl}/program/{mainFileName}.sha1", $"{mainFileName}.sha1", initialChecker))
+                    // If main executable is in the temp path, it means it needs to be updated.
+                    if (File.Exists(mainTempPath))
                     {
-                        // Download the latest main executable from server and save it to temp path.
-                        File.WriteAllBytes(mainTempPath, DownloadFile($"{serverUrl}/program/{mainFileName}.exe", $"{mainFileName}.exe", initialChecker));
-
                         // Run updater worker process to update the main executable.
                         ShowMessageBox(
                             MessageBoxButtons.OK,
@@ -243,7 +269,7 @@ namespace LostArkKoreanPatch.Main
 
                 try
                 {
-                    string serverVersion = Encoding.ASCII.GetString(DownloadFile($"{serverUrl}/distrib/{versionFileName}", versionFileName, initialChecker));
+                    string serverVersion = Encoding.ASCII.GetString(DownloadFile($"{serverUrl}/{versionFileName}", versionFileName, initialChecker));
 
                     if (!serverVersion.Equals(targetVersion))
                     {
@@ -313,11 +339,19 @@ namespace LostArkKoreanPatch.Main
                 // Check cached patch files and download from server only if SHA1 checksum is different.
                 UpdateStatusLabel($"한글 패치 업데이트 확인 중... {targetVersion}");
 
-                foreach (KeyValuePair<string, string> distributedFileName in distributedFileNames)
+                string distribUrl = Encoding.ASCII.GetString(DownloadFile($"{serverUrl}/distrib", "distrib", installWorker));
+                bool downloadRequired = CheckIfDownloadRequired($"{distribUrl}.sha1", "distrib.sha1", distribPath, installWorker);
+
+                if (downloadRequired)
                 {
-                    CheckAndDownload(
-                        $"{serverUrl}/distrib", distributedFileName.Key, distributedFileName.Value,
-                        $"{Path.Combine(distribDir, distributedFileName.Key)}.{distributedFileName.Value}", installWorker);
+                    DownloadAndSaveFile(distribUrl, distribPath, "distrib", installWorker);
+
+                    if (Directory.Exists(distribDir)) Directory.Delete(distribDir, true);
+                    Directory.CreateDirectory(distribDir);
+                    ExtractToFolder(distribPath, distribDir);
+
+                    UncompressFile(Path.Combine(distribDir, "data2lpk"), Path.Combine(distribDir, "data2.lpk"));
+                    UncompressFile(Path.Combine(distribDir, "fontlpk"), Path.Combine(distribDir, "font.lpk"));
                 }
 
                 UpdateStatusLabel($"한글 패치 설치 중... {targetVersion}");
@@ -369,17 +403,22 @@ namespace LostArkKoreanPatch.Main
         {
             try
             {
-                // Create cache directory if it doesn't exist.
-                Directory.CreateDirectory(Path.Combine(distribDir, "orig"));
-
                 // Check cached patch files and download from server only if SHA1 checksum is different.
                 UpdateStatusLabel($"한글 패치 업데이트 확인 중... {targetVersion}");
 
-                foreach (KeyValuePair<string, string> distributedFileName in distributedFileNames)
+                string origUrl = Encoding.ASCII.GetString(DownloadFile($"{serverUrl}/orig", "orig", removeWorker));
+                bool downloadRequired = CheckIfDownloadRequired($"{origUrl}.sha1", "orig.sha1", origPath, removeWorker);
+
+                if (downloadRequired)
                 {
-                    CheckAndDownload(
-                        $"{serverUrl}/distrib/orig", distributedFileName.Key, distributedFileName.Value,
-                        $"{Path.Combine(distribDir, "orig", distributedFileName.Key)}.{distributedFileName.Value}", removeWorker);
+                    DownloadAndSaveFile(origUrl, origPath, "orig", removeWorker);
+
+                    if (Directory.Exists(origDir)) Directory.Delete(origDir, true);
+                    Directory.CreateDirectory(origDir);
+                    ExtractToFolder(origPath, origDir);
+
+                    UncompressFile(Path.Combine(origDir, "data2lpk"), Path.Combine(origDir, "data2.lpk"));
+                    UncompressFile(Path.Combine(origDir, "fontlpk"), Path.Combine(origDir, "font.lpk"));
                 }
 
                 UpdateStatusLabel($"한글 패치 삭제 중... {targetVersion}");
@@ -390,7 +429,7 @@ namespace LostArkKoreanPatch.Main
                 }));
 
                 // Run the child worker process with administrator access to replace the patch files with original unpatched files.
-                Process p = Process.Start(new ProcessStartInfo(patcherPath, $"1 \"{targetDir}\" \"{distribDir}\"")
+                Process p = Process.Start(new ProcessStartInfo(patcherPath, $"1 \"{targetDir}\" \"{origDir}\"")
                 {
                     UseShellExecute = true,
                     Verb = "runas"
