@@ -271,7 +271,7 @@ namespace LostArkKoreanPatch.Main
                     {
                         long contentLength = (long)responseMessage.Content.Headers.ContentLength;
 
-                        // Create a memory stream and feed it with the client stream.
+                        // Create a file stream and feed it with the client stream.
                         using (FileStream fs = new FileStream(filePath, FileMode.Create))
                         using (Stream inStream = responseMessage.Content.ReadAsStreamAsync().GetAwaiter().GetResult())
                         {
@@ -282,7 +282,7 @@ namespace LostArkKoreanPatch.Main
                             }));
 
                             // Buffer size is 1/10 of the total content.
-                            // Grab data from http client stream and copy to memory stream.
+                            // Grab data from http client stream and copy to file stream.
                             inStream.CopyToAsync(fs, (int)(contentLength / 10), contentLength, p).GetAwaiter().GetResult();
 
                             // Empty the progress bar after download is complete.
