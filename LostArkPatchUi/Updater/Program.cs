@@ -37,7 +37,7 @@ namespace LostArkKoreanPatch.Updater
             // Remove the downloaded file from the cache.
             File.Delete(args[1]);
 
-            // Start the main program after update is done.
+            // Start the main executable after update is done.
             Process.Start(args[0]);
         }
     }
