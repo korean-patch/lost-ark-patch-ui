@@ -529,6 +529,16 @@ namespace LostArkKoreanPatch.Main
             installWorker.RunWorkerAsync();
         }
 
+        private void removeButton_Click(object sender, EventArgs e)
+        {
+            // Block further inputs.
+            installButton.Enabled = false;
+            removeButton.Enabled = false;
+
+            // Start the background worker to remove the korean patch.
+            removeWorker.RunWorkerAsync();
+        }
+
         private void DownloadWork(string[] patchFiles, bool isRemove = false)
         {
             try
@@ -580,12 +590,12 @@ namespace LostArkKoreanPatch.Main
             DownloadWork(patchFiles);
         }
 
-        private void removeButton_Click(object sender, EventArgs e)
+        #endregion
+
+        private void removeWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             DownloadWork(patchFiles, true);
         }
-
-        #endregion
     }
 
     // Extending HTTP client stream to report download progress while copying.

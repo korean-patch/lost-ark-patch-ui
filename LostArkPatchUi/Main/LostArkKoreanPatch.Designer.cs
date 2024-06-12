@@ -36,6 +36,7 @@
             this.statusLabel = new System.Windows.Forms.Label();
             this.removeButton = new System.Windows.Forms.Button();
             this.installButton = new System.Windows.Forms.Button();
+            this.removeWorker = new System.ComponentModel.BackgroundWorker();
             this.SuspendLayout();
             // 
             // initialChecker
@@ -122,6 +123,12 @@
             this.installButton.UseVisualStyleBackColor = false;
             this.installButton.Click += new System.EventHandler(this.installButton_Click);
             // 
+            // removeWorker
+            // 
+            this.removeWorker.WorkerReportsProgress = true;
+            this.removeWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.removeWorker_DoWork);
+            this.removeWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.initialChecker_ProgressChanged);
+            // 
             // LostArkKoreanPatch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -160,5 +167,6 @@
         private System.Windows.Forms.Label statusLabel;
         private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.Button installButton;
+        private System.ComponentModel.BackgroundWorker removeWorker;
     }
 }
