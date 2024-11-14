@@ -590,12 +590,12 @@ namespace LostArkKoreanPatch.Main
             DownloadWork(patchFiles);
         }
 
-        #endregion
-
         private void removeWorker_DoWork(object sender, DoWorkEventArgs e)
         {
             DownloadWork(patchFiles, true);
         }
+
+        #endregion
     }
 
     // Extending HTTP client stream to report download progress while copying.
