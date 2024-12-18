@@ -201,7 +201,7 @@ namespace LostArkKoreanPatch.Main
             using (HttpClient client = new HttpClient())
             {
                 // Default user agent and timeout values.
-                client.DefaultRequestHeaders.Add("User-Agent", "request");
+                client.DefaultRequestHeaders.Add("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36");
                 client.Timeout = TimeSpan.FromMinutes(5);
 
                 // Indicate what file we're downloading...
@@ -468,7 +468,8 @@ namespace LostArkKoreanPatch.Main
 
                 try
                 {
-                    serverVersion = Encoding.ASCII.GetString(DownloadFile($"{serverUrl}/{versionFileName}", versionFileName, initialChecker));
+                    byte[] payload = DownloadFile($"{serverUrl}/{versionFileName}", versionFileName, initialChecker);
+                    serverVersion = Encoding.ASCII.GetString(payload);
 
                     if (!serverVersion.Equals(targetVersion))
                     {
