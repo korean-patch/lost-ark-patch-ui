@@ -37,6 +37,7 @@
             this.removeButton = new System.Windows.Forms.Button();
             this.installButton = new System.Windows.Forms.Button();
             this.removeWorker = new System.ComponentModel.BackgroundWorker();
+            this.skipLogoButton = new System.Windows.Forms.Button();
             this.SuspendLayout();
             // 
             // initialChecker
@@ -129,6 +130,27 @@
             this.removeWorker.DoWork += new System.ComponentModel.DoWorkEventHandler(this.removeWorker_DoWork);
             this.removeWorker.ProgressChanged += new System.ComponentModel.ProgressChangedEventHandler(this.initialChecker_ProgressChanged);
             // 
+            // skipLogoButton
+            // 
+            this.skipLogoButton.AutoSize = true;
+            this.skipLogoButton.BackColor = System.Drawing.Color.Transparent;
+            this.skipLogoButton.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.skipLogoButton.Enabled = false;
+            this.skipLogoButton.FlatAppearance.BorderColor = System.Drawing.Color.FromArgb(((int)(((byte)(48)))), ((int)(((byte)(48)))), ((int)(((byte)(48)))));
+            this.skipLogoButton.FlatAppearance.MouseDownBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(32)))), ((int)(((byte)(32)))), ((int)(((byte)(32)))));
+            this.skipLogoButton.FlatAppearance.MouseOverBackColor = System.Drawing.Color.FromArgb(((int)(((byte)(64)))), ((int)(((byte)(64)))), ((int)(((byte)(64)))));
+            this.skipLogoButton.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.skipLogoButton.Location = new System.Drawing.Point(0, 190);
+            this.skipLogoButton.Margin = new System.Windows.Forms.Padding(10);
+            this.skipLogoButton.Name = "skipLogoButton";
+            this.skipLogoButton.Padding = new System.Windows.Forms.Padding(10);
+            this.skipLogoButton.Size = new System.Drawing.Size(384, 47);
+            this.skipLogoButton.TabIndex = 0;
+            this.skipLogoButton.TabStop = false;
+            this.skipLogoButton.Text = "로고 스킵 모드";
+            this.skipLogoButton.UseVisualStyleBackColor = false;
+            this.skipLogoButton.Click += new System.EventHandler(this.skipLogoButton_Click);
+            // 
             // LostArkKoreanPatch
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 15F);
@@ -137,6 +159,7 @@
             this.BackgroundImage = ((System.Drawing.Image)(resources.GetObject("$this.BackgroundImage")));
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.None;
             this.ClientSize = new System.Drawing.Size(384, 411);
+            this.Controls.Add(this.skipLogoButton);
             this.Controls.Add(this.installButton);
             this.Controls.Add(this.removeButton);
             this.Controls.Add(this.statusLabel);
@@ -168,5 +191,6 @@
         private System.Windows.Forms.Button removeButton;
         private System.Windows.Forms.Button installButton;
         private System.ComponentModel.BackgroundWorker removeWorker;
+        private System.Windows.Forms.Button skipLogoButton;
     }
 }

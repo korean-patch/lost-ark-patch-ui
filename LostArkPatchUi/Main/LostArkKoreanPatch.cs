@@ -61,6 +61,9 @@ namespace LostArkKoreanPatch.Main
         // Name of the version file that denotes target game client version for the patch.
         private const string versionFileName = "LOSTARK.ver";
 
+        // Name of the logo movie file.
+        private const string logoFileName = "E2GFL7M0PSEWD6V1B8YTEO.ipk";
+
         // Target client directory.
         private string targetDir = string.Empty;
 
@@ -496,11 +499,18 @@ namespace LostArkKoreanPatch.Main
                     return;
                 }
 
+                string logoDir = Path.Combine(targetDir, "EFGame", "Movies");
+                string logoFilePath = Path.Combine(logoDir, logoFileName);
+                bool skipLogoEnabled = Directory.Exists(logoDir) && (File.Exists(logoFilePath) || File.Exists(logoFilePath + ".bk"));
+                string skipLogoButtonText = skipLogoEnabled ? ("로고 스킵 모드 " + (File.Exists(logoFilePath) ? "설치" : "제거")) : "-";
+
                 // Check all done!
                 UpdateStatusLabel($"버전 {targetVersion}, 패치 버전 {serverVersion}", !serverVersion.Equals(targetVersion));
 
                 Invoke(new Action(() =>
                 {
+                    skipLogoButton.Text = skipLogoButtonText;
+                    skipLogoButton.Enabled = skipLogoEnabled;
                     installButton.Enabled = true;
                     removeButton.Enabled = true;
                     progressBar.Value = 0;
@@ -520,9 +530,47 @@ namespace LostArkKoreanPatch.Main
             }
         }
 
+        private void skipLogoButton_Click(object sender, EventArgs e)
+        {
+            // Block further inputs.
+            skipLogoButton.Enabled = false;
+            installButton.Enabled = false;
+            removeButton.Enabled = false;
+
+            string logoDir = Path.Combine(targetDir, "EFGame", "Movies");
+            string logoFilePath = Path.Combine(logoDir, logoFileName);
+
+            switch (skipLogoButton.Text)
+            {
+                case "로고 스킵 모드 설치":
+                    if (Directory.Exists(logoDir) && File.Exists(logoFilePath))
+                    {
+                        if (File.Exists(logoFilePath + ".bk")) File.Delete(logoFilePath + ".bk");
+                        File.Move(logoFilePath, logoFilePath + ".bk");
+                    }
+                    break;
+                case "로고 스킵 모드 제거":
+                    if (Directory.Exists(logoDir) && File.Exists(logoFilePath + ".bk"))
+                    {
+                        if (File.Exists(logoFilePath)) File.Delete(logoFilePath);
+                        File.Move(logoFilePath + ".bk", logoFilePath);
+                    }
+                    break;
+            }
+
+            ShowMessageBox(
+                MessageBoxButtons.OK,
+                MessageBoxIcon.Information,
+                "작업이 성공적으로 완료되었어요!",
+                "문제 발생 시 스팀 게임 파일 무결성 검사를 사용해주세요.");
+            CloseForm();
+            return;
+        }
+
         private void installButton_Click(object sender, EventArgs e)
         {
             // Block further inputs.
+            skipLogoButton.Enabled = false;
             installButton.Enabled = false;
             removeButton.Enabled = false;
 
@@ -533,6 +581,7 @@ namespace LostArkKoreanPatch.Main
         private void removeButton_Click(object sender, EventArgs e)
         {
             // Block further inputs.
+            skipLogoButton.Enabled = false;
             installButton.Enabled = false;
             removeButton.Enabled = false;
 
